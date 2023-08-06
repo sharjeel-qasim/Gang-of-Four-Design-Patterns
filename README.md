@@ -1,7 +1,5 @@
 # Gang of Four Design Patterns
 
-![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg)
-
 ## Description
 
 This repository contains implementations and examples of the Gang of Four (GoF) design patterns in C# programming language. The Gang of Four patterns are a set of classic design patterns that were introduced by Erich Gamma, Richard Helm, Ralph Johnson, and John Vlissides in their book "Design Patterns: Elements of Reusable Object-Oriented Software".
