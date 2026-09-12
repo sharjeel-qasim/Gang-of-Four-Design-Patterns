@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Design Patterns Explorer - .NET 8 / C# 12</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-hover: #79c0ff;
+      --success: #3fb950;
+      --warning: #d29922;
+      --sidebar-width: 320px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    /* Sidebar Navigation */
+    aside {
+      width: var(--sidebar-width);
+      background: #11151c;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      flex-shrink: 0;
+    }
+    .brand {
+      padding: 1.25rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: #161b22;
+    }
+    .brand h1 {
+      font-size: 1.1rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .brand p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+    .search-box {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-box input {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.85rem;
+    }
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .nav-links {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.5rem 0;
+    }
+    .nav-group-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 0.75rem 1rem 0.25rem;
+      font-weight: 700;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.45rem 1rem;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: all 0.15s ease;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover, .nav-item.active {
+      background: #1f242c;
+      color: #fff;
+      border-left-color: var(--accent);
+    }
+    .badge {
+      font-size: 0.68rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 12px;
+      background: #21262d;
+      color: var(--text-muted);
+    }
+    .sidebar-footer {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn-link {
+      flex: 1;
+      text-align: center;
+      padding: 0.45rem 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: #161b22;
+      transition: background 0.15s;
+    }
+    .btn-link:hover { background: #21262d; }
+
+    /* Main Content Area */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      height: 100%;
+      padding: 2rem 2.5rem;
+    }
+    header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h2 { font-size: 1.75rem; color: #fff; }
+    .pattern-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.75rem;
+      margin-bottom: 2rem;
+      scroll-margin-top: 2rem;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+    }
+    .card-title {
+      font-size: 1.35rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .card-category {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .field-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    .intent-box, .scenario-box {
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+    .action-panel {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+    .btn-run {
+      background: #238636;
+      color: #fff;
+      border: none;
+      padding: 0.55rem 1.2rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: background 0.15s;
+    }
+    .btn-run:hover { background: #2ea043; }
+    .btn-run:disabled { opacity: 0.6; cursor: not-allowed; }
+    .endpoint-tag {
+      font-family: monospace;
+      font-size: 0.8rem;
+      background: #0d1117;
+      padding: 0.4rem 0.75rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .execution-output {
+      margin-top: 1.25rem;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem;
+      display: none;
+    }
+    .execution-output.active { display: block; }
+    .trace-list {
+      list-style: none;
+      margin-bottom: 0.75rem;
+    }
+    .trace-item {
+      font-family: monospace;
+      font-size: 0.82rem;
+      color: #58a6ff;
+      padding: 0.2rem 0;
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+    .trace-item::before { content: "➔"; color: var(--text-muted); font-size: 0.75rem; }
+    .json-result {
+      background: #161b22;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.75rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #e6edf3;
+      overflow-x: auto;
+      max-height: 200px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand">
+      <h1>🏛️ Design Patterns</h1>
+      <p>.NET 8 LTS &bull; C# 12 Senior Architecture</p>
+    </div>
+    <div class="search-box">
+      <input type="text" id="patternSearch" placeholder="Filter 29 patterns..." onkeyup="filterPatterns()" />
+    </div>
+    <div class="nav-links" id="navLinks">
+      <!-- Navigation groups dynamically populated or static -->
+      <div class="nav-group-title">Creational Patterns</div>
+      <a class="nav-item" href="#singleton"><span>Singleton</span><span class="badge">Lazy & DI</span></a>
+      <a class="nav-item" href="#factory-method"><span>Factory Method</span><span class="badge">Notifier</span></a>
+      <a class="nav-item" href="#abstract-factory"><span>Abstract Factory</span><span class="badge">Cloud</span></a>
+      <a class="nav-item" href="#builder"><span>Builder</span><span class="badge">Invoice</span></a>
+      <a class="nav-item" href="#prototype"><span>Prototype</span><span class="badge">Cloning</span></a>
+
+      <div class="nav-group-title">Structural Patterns</div>
+      <a class="nav-item" href="#adapter"><span>Adapter</span><span class="badge">Legacy XML</span></a>
+      <a class="nav-item" href="#bridge"><span>Bridge</span><span class="badge">Channels</span></a>
+      <a class="nav-item" href="#composite"><span>Composite</span><span class="badge">Bundles</span></a>
+      <a class="nav-item" href="#decorator"><span>Decorator</span><span class="badge">Pipeline</span></a>
+      <a class="nav-item" href="#facade"><span>Facade</span><span class="badge">Checkout</span></a>
+      <a class="nav-item" href="#flyweight"><span>Flyweight</span><span class="badge">Memory</span></a>
+      <a class="nav-item" href="#proxy"><span>Proxy</span><span class="badge">Protection</span></a>
+
+      <div class="nav-group-title">Behavioral Patterns</div>
+      <a class="nav-item" href="#chain-of-responsibility"><span>Chain of Resp.</span><span class="badge">Approval</span></a>
+      <a class="nav-item" href="#command"><span>Command</span><span class="badge">Undo/Redo</span></a>
+      <a class="nav-item" href="#interpreter"><span>Interpreter</span><span class="badge">AST Rule</span></a>
+      <a class="nav-item" href="#iterator"><span>Iterator</span><span class="badge">AsyncStream</span></a>
+      <a class="nav-item" href="#mediator"><span>Mediator</span><span class="badge">MediatR</span></a>
+      <a class="nav-item" href="#memento"><span>Memento</span><span class="badge">Snapshot</span></a>
+      <a class="nav-item" href="#observer"><span>Observer</span><span class="badge">Reactive</span></a>
+      <a class="nav-item" href="#state"><span>State</span><span class="badge">Machine</span></a>
+      <a class="nav-item" href="#strategy"><span>Strategy</span><span class="badge">Discounts</span></a>
+      <a class="nav-item" href="#template-method"><span>Template Method</span><span class="badge">ETL</span></a>
+      <a class="nav-item" href="#visitor"><span>Visitor</span><span class="badge">Exporter</span></a>
+
+      <div class="nav-group-title">Modern Enterprise Patterns</div>
+      <a class="nav-item" href="#cqrs"><span>CQRS</span><span class="badge">Write/Read</span></a>
+      <a class="nav-item" href="#specification"><span>Specification</span><span class="badge">Rules</span></a>
+      <a class="nav-item" href="#result-rop"><span>Result / ROP</span><span class="badge">Functional</span></a>
+      <a class="nav-item" href="#outbox"><span>Transactional Outbox</span><span class="badge">Events</span></a>
+      <a class="nav-item" href="#circuit-breaker"><span>Circuit Breaker</span><span class="badge">Resilience</span></a>
+      <a class="nav-item" href="#options"><span>Options Pattern</span><span class="badge">Config</span></a>
+    </div>
+    <div class="sidebar-footer">
+      <a href="/swagger" class="btn-link" target="_blank">Open Swagger UI</a>
+      <a href="https://github.com/sharjeel-qasim/Gang-of-Four-Design-Patterns" class="btn-link" target="_blank">GitHub Repo</a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main id="mainContainer">
+    <header>
+      <div>
+        <h2>Interactive Pattern Explorer</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.3rem;">
+          Execute live demonstrations, observe execution traces, and inspect architecture results.
+        </p>
+      </div>
+      <div>
+        <a href="/swagger" target="_blank" class="btn-link" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">Swagger Documentation &rarr;</a>
+      </div>
+    </header>
+
+    <div id="cardsContainer">
+      <!-- Creational -->
+      <section id="singleton" class="pattern-card" data-name="singleton">
+        <div class="card-header">
+          <div class="card-title">Singleton <span class="card-category">Creational</span></div>
+          <span class="endpoint-tag">GET /api/creational/singleton</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Ensure a class has only one instance, while providing a global point of access to it.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Comparing Naive vs ThreadSafe Lock vs Modern <code>System.Lazy&lt;T&gt;</code> vs Dependency Injection (<code>AddSingleton</code>).</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('singleton', 'GET', '/api/creational/singleton')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-singleton" class="execution-output"></div>
+      </section>
+
+      <section id="factory-method" class="pattern-card" data-name="factory method">
+        <div class="card-header">
+          <div class="card-title">Factory Method <span class="card-category">Creational</span></div>
+          <span class="endpoint-tag">POST /api/creational/factory-method</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Define an interface for creating an object, but let subclasses decide which class to instantiate.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Multi-channel Notification Dispatcher routing to Email, SMS, or Push gateways dynamically.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('factory-method', 'POST', '/api/creational/factory-method?channel=sms&recipient=%2B15559876543&message=Your+security+code+is+7391')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-factory-method" class="execution-output"></div>
+      </section>
+
+      <section id="abstract-factory" class="pattern-card" data-name="abstract factory">
+        <div class="card-header">
+          <div class="card-title">Abstract Factory <span class="card-category">Creational</span></div>
+          <span class="endpoint-tag">POST /api/creational/abstract-factory</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Provide an interface for creating families of related or dependent objects without specifying their concrete classes.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Multi-cloud infrastructure provisioner creating compatible Storage, Queues, and Compute for Azure and AWS.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('abstract-factory', 'POST', '/api/creational/abstract-factory?provider=azure&serviceName=OrderProcessingEngine')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-abstract-factory" class="execution-output"></div>
+      </section>
+
+      <section id="builder" class="pattern-card" data-name="builder">
+        <div class="card-header">
+          <div class="card-title">Builder (Fluent Step-Builder) <span class="card-category">Creational</span></div>
+          <span class="endpoint-tag">POST /api/creational/builder</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Separate the construction of a complex object from its representation so that the same construction process can create different representations.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Fluent Step-Builder for Financial Invoices enforcing sequential construction and business rules at compile-time.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('builder', 'POST', '/api/creational/builder')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-builder" class="execution-output"></div>
+      </section>
+
+      <section id="prototype" class="pattern-card" data-name="prototype">
+        <div class="card-header">
+          <div class="card-title">Prototype <span class="card-category">Creational</span></div>
+          <span class="endpoint-tag">POST /api/creational/prototype</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Specify the kinds of objects to create using a prototypical instance, and create new objects by copying this prototype.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Server configuration template cloning demonstrating Deep Copy vs Shallow Copy and C# 12 <code>record with</code> expressions.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('prototype', 'POST', '/api/creational/prototype')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-prototype" class="execution-output"></div>
+      </section>
+
+      <!-- Structural -->
+      <section id="adapter" class="pattern-card" data-name="adapter">
+        <div class="card-header">
+          <div class="card-title">Adapter <span class="card-category">Structural</span></div>
+          <span class="endpoint-tag">POST /api/structural/adapter</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Convert the interface of a class into another interface clients expect.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Adapting legacy XML SOAP mainframe billing into modern <code>IPaymentGateway</code>.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('adapter', 'POST', '/api/structural/adapter?customerId=ACC-8899&amount=450.00&currency=USD')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-adapter" class="execution-output"></div>
+      </section>
+
+      <section id="bridge" class="pattern-card" data-name="bridge">
+        <div class="card-header">
+          <div class="card-title">Bridge <span class="card-category">Structural</span></div>
+          <span class="endpoint-tag">POST /api/structural/bridge</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Decouple an abstraction from its implementation so that the two can vary independently.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Decoupling notification urgency (Standard, Urgent, Digest) from delivery messaging platforms (Slack, Email, SMS).</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('bridge', 'POST', '/api/structural/bridge?priority=urgent&channel=slack&recipient=dev-ops-room')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-bridge" class="execution-output"></div>
+      </section>
+
+      <section id="composite" class="pattern-card" data-name="composite">
+        <div class="card-header">
+          <div class="card-title">Composite <span class="card-category">Structural</span></div>
+          <span class="endpoint-tag">GET /api/structural/composite</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Compose objects into tree structures to represent part-whole hierarchies.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">E-Commerce Product Bundle tree with recursive discount calculations across child bundles and leaf products.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('composite', 'GET', '/api/structural/composite')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-composite" class="execution-output"></div>
+      </section>
+
+      <section id="decorator" class="pattern-card" data-name="decorator">
+        <div class="card-header">
+          <div class="card-title">Decorator <span class="card-category">Structural</span></div>
+          <span class="endpoint-tag">GET /api/structural/decorator</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Attach additional responsibilities to an object dynamically.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Assembling service pipelines decorating <code>IOrderService</code> with Caching, Structured Logging, and Timing.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('decorator', 'GET', '/api/structural/decorator')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-decorator" class="execution-output"></div>
+      </section>
+
+      <section id="facade" class="pattern-card" data-name="facade">
+        <div class="card-header">
+          <div class="card-title">Facade <span class="card-category">Structural</span></div>
+          <span class="endpoint-tag">POST /api/structural/facade</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Provide a unified interface to a set of interfaces in a subsystem.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Orchestrating checkout across Inventory, Payment, Shipping, and Notifications into a single intuitive call.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('facade', 'POST', '/api/structural/facade')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-facade" class="execution-output"></div>
+      </section>
+
+      <section id="flyweight" class="pattern-card" data-name="flyweight">
+        <div class="card-header">
+          <div class="card-title">Flyweight <span class="card-category">Structural</span></div>
+          <span class="endpoint-tag">GET /api/structural/flyweight</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Use sharing to support large numbers of fine-grained objects efficiently.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Rendering 1,000 geographic map markers sharing immutable icon flyweights to conserve RAM.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('flyweight', 'GET', '/api/structural/flyweight')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-flyweight" class="execution-output"></div>
+      </section>
+
+      <section id="proxy" class="pattern-card" data-name="proxy">
+        <div class="card-header">
+          <div class="card-title">Proxy <span class="card-category">Structural</span></div>
+          <span class="endpoint-tag">GET /api/structural/proxy</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Provide a surrogate or placeholder for another object to control access to it.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Role-based security protection proxy and lazy-loading virtual proxy for heavy financial reports.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('proxy', 'GET', '/api/structural/proxy?userRole=Admin')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-proxy" class="execution-output"></div>
+      </section>
+
+      <!-- Behavioral -->
+      <section id="chain-of-responsibility" class="pattern-card" data-name="chain of responsibility">
+        <div class="card-header">
+          <div class="card-title">Chain of Responsibility <span class="card-category">Behavioral</span></div>
+          <span class="endpoint-tag">POST /api/behavioral/chain-of-responsibility</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Pass requests along a chain of potential handlers until one handles it.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Corporate purchase approval hierarchy (Team Lead -> Director -> VP -> Board of Directors).</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('chain-of-responsibility', 'POST', '/api/behavioral/chain-of-responsibility?amount=15000')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-chain-of-responsibility" class="execution-output"></div>
+      </section>
+
+      <section id="command" class="pattern-card" data-name="command">
+        <div class="card-header">
+          <div class="card-title">Command <span class="card-category">Behavioral</span></div>
+          <span class="endpoint-tag">POST /api/behavioral/command</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Encapsulate a request as an object, allowing queuing, undo/redo, and transaction journals.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Bank account transactions with execute, rollback (undo), and audit history trail.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('command', 'POST', '/api/behavioral/command?depositAmount=500&withdrawAmount=200')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-command" class="execution-output"></div>
+      </section>
+
+      <section id="interpreter" class="pattern-card" data-name="interpreter">
+        <div class="card-header">
+          <div class="card-title">Interpreter <span class="card-category">Behavioral</span></div>
+          <span class="endpoint-tag">POST /api/behavioral/interpreter</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Given a language, define a grammar representation and an interpreter to evaluate sentences.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Dynamic SQL-like expression filter engine evaluating composite rules on product catalogs.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('interpreter', 'POST', '/api/behavioral/interpreter?category=Electronics&maxPrice=500')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-interpreter" class="execution-output"></div>
+      </section>
+
+      <section id="iterator" class="pattern-card" data-name="iterator">
+        <div class="card-header">
+          <div class="card-title">Iterator <span class="card-category">Behavioral</span></div>
+          <span class="endpoint-tag">GET /api/behavioral/iterator</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Provide a way to access elements of an aggregate object sequentially without exposing internal representation.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Transparently streaming paginated REST API pages into unified asynchronous streams via <code>IAsyncEnumerable&lt;T&gt;</code>.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('iterator', 'GET', '/api/behavioral/iterator')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-iterator" class="execution-output"></div>
+      </section>
+
+      <section id="mediator" class="pattern-card" data-name="mediator">
+        <div class="card-header">
+          <div class="card-title">Mediator <span class="card-category">Behavioral</span></div>
+          <span class="endpoint-tag">POST /api/behavioral/mediator</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Encapsulate how a set of objects interact to promote loose coupling.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">MediatR-style in-process CQRS request/handler dispatcher.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('mediator', 'POST', '/api/behavioral/mediator?name=Bruce+Wayne&email=bruce%40wayne.corp&tier=VIP')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-mediator" class="execution-output"></div>
+      </section>
+
+      <section id="memento" class="pattern-card" data-name="memento">
+        <div class="card-header">
+          <div class="card-title">Memento <span class="card-category">Behavioral</span></div>
+          <span class="endpoint-tag">POST /api/behavioral/memento</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Capture and externalize object internal state without violating encapsulation to restore later.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Shopping cart and document snapshot originator and caretaker with rollback support.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('memento', 'POST', '/api/behavioral/memento')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-memento" class="execution-output"></div>
+      </section>
+
+      <section id="observer" class="pattern-card" data-name="observer">
+        <div class="card-header">
+          <div class="card-title">Observer <span class="card-category">Behavioral</span></div>
+          <span class="endpoint-tag">POST /api/behavioral/observer</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Define a one-to-many dependency so when one object changes state, dependents are notified.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Real-time stock market feed broadcasting price updates to algorithmic traders and risk auditors using <code>IObservable&lt;T&gt;</code>.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('observer', 'POST', '/api/behavioral/observer?symbol=MSFT&newPrice=380')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-observer" class="execution-output"></div>
+      </section>
+
+      <section id="state" class="pattern-card" data-name="state">
+        <div class="card-header">
+          <div class="card-title">State <span class="card-category">Behavioral</span></div>
+          <span class="endpoint-tag">POST /api/behavioral/state</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Allow an object to alter its behavior when internal state changes.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Order fulfillment lifecycle state machine (Created -> Paid -> Shipped -> Delivered / Cancelled).</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('state', 'POST', '/api/behavioral/state')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-state" class="execution-output"></div>
+      </section>
+
+      <section id="strategy" class="pattern-card" data-name="strategy">
+        <div class="card-header">
+          <div class="card-title">Strategy <span class="card-category">Behavioral</span></div>
+          <span class="endpoint-tag">POST /api/behavioral/strategy</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Define a family of algorithms, encapsulate each one, and make them interchangeable.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Dynamic e-commerce discount calculators based on promotional campaigns and VIP tiers.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('strategy', 'POST', '/api/behavioral/strategy?strategyType=progressive&cartTotal=350')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-strategy" class="execution-output"></div>
+      </section>
+
+      <section id="template-method" class="pattern-card" data-name="template method">
+        <div class="card-header">
+          <div class="card-title">Template Method <span class="card-category">Behavioral</span></div>
+          <span class="endpoint-tag">POST /api/behavioral/template-method</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Define algorithm skeleton in an operation, deferring certain steps to subclasses.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Data Ingestion (ETL) pipeline skeleton (Extract -> Validate -> Transform -> Load) with CSV/JSON hooks.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('template-method', 'POST', '/api/behavioral/template-method?format=csv')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-template-method" class="execution-output"></div>
+      </section>
+
+      <section id="visitor" class="pattern-card" data-name="visitor">
+        <div class="card-header">
+          <div class="card-title">Visitor <span class="card-category">Behavioral</span></div>
+          <span class="endpoint-tag">POST /api/behavioral/visitor</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Represent an operation to be performed on elements of an object structure without modifying classes.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Technical document exporter rendering elements into Markdown and HTML formats.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('visitor', 'POST', '/api/behavioral/visitor')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-visitor" class="execution-output"></div>
+      </section>
+
+      <!-- Modern Enterprise -->
+      <section id="cqrs" class="pattern-card" data-name="cqrs">
+        <div class="card-header">
+          <div class="card-title">CQRS <span class="card-category">Modern Enterprise</span></div>
+          <span class="endpoint-tag">POST /api/modern/cqrs</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Segregate write models and commands from read projections and queries.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Separating high-scale transactional product writes from read-optimized cached projections.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('cqrs', 'POST', '/api/modern/cqrs?sku=SKU-770&name=Mechanical+Keyboard&price=169.99')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-cqrs" class="execution-output"></div>
+      </section>
+
+      <section id="specification" class="pattern-card" data-name="specification">
+        <div class="card-header">
+          <div class="card-title">Specification <span class="card-category">Modern Enterprise</span></div>
+          <span class="endpoint-tag">POST /api/modern/specification</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Encapsulate business rules into combinable boolean specifications (And, Or, Not).</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Composable enterprise order validation and fraud-free eligibility policies.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('specification', 'POST', '/api/modern/specification')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-specification" class="execution-output"></div>
+      </section>
+
+      <section id="result-rop" class="pattern-card" data-name="result rop railway">
+        <div class="card-header">
+          <div class="card-title">Result Pattern / ROP <span class="card-category">Modern Enterprise</span></div>
+          <span class="endpoint-tag">POST /api/modern/result-rop</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Chain operations functionally via Bind/Map without throwing exceptions for business flow.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Financial underwriting loan evaluation pipeline chaining credit score and debt-ratio checks.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('result-rop', 'POST', '/api/modern/result-rop?amount=20000&creditScore=740&monthlyIncome=6000')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-result-rop" class="execution-output"></div>
+      </section>
+
+      <section id="outbox" class="pattern-card" data-name="transactional outbox">
+        <div class="card-header">
+          <div class="card-title">Transactional Outbox <span class="card-category">Modern Enterprise</span></div>
+          <span class="endpoint-tag">POST /api/modern/outbox</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Atomically commit domain entities and outbound events to prevent dual-write loss.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Reliable microservices event publishing to Kafka/RabbitMQ with zero message loss.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('outbox', 'POST', '/api/modern/outbox?orderId=ORD-8822&amount=450')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-outbox" class="execution-output"></div>
+      </section>
+
+      <section id="circuit-breaker" class="pattern-card" data-name="circuit breaker">
+        <div class="card-header">
+          <div class="card-title">Circuit Breaker <span class="card-category">Modern Enterprise</span></div>
+          <span class="endpoint-tag">POST /api/modern/circuit-breaker</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Prevent cascading failures by failing fast when downstream services degrade and probing for recovery.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Resilient cloud microservice communication transitioning across Closed, Open, and Half-Open states.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('circuit-breaker', 'POST', '/api/modern/circuit-breaker')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-circuit-breaker" class="execution-output"></div>
+      </section>
+
+      <section id="options" class="pattern-card" data-name="options pattern">
+        <div class="card-header">
+          <div class="card-title">Options Pattern <span class="card-category">Modern Enterprise</span></div>
+          <span class="endpoint-tag">POST /api/modern/options</span>
+        </div>
+        <div class="field-label">Intent</div>
+        <div class="intent-box">Provide strongly-typed, validated configuration access in ASP.NET Core.</div>
+        <div class="field-label">Senior Enterprise Scenario</div>
+        <div class="scenario-box">Validating cloud storage container and concurrency options on application startup.</div>
+        <div class="action-panel">
+          <button class="btn-run" onclick="executePattern('options', 'POST', '/api/modern/options?containerName=prod-assets&maxUploads=30')">▶ Run Live Demo</button>
+        </div>
+        <div id="output-options" class="execution-output"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    function filterPatterns() {
+      const q = document.getElementById('patternSearch').value.toLowerCase();
+      const cards = document.querySelectorAll('.pattern-card');
+      const navItems = document.querySelectorAll('.nav-item');
+
+      cards.forEach(card => {
+        const name = card.getAttribute('data-name');
+        const text = card.innerText.toLowerCase();
+        if (name.includes(q) || text.includes(q)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      navItems.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        if (text.includes(q)) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    async function executePattern(id, method, url) {
+      const outputDiv = document.getElementById('output-' + id);
+      outputDiv.className = 'execution-output active';
+      outputDiv.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem;">⏳ Executing pattern via ' + method + ' ' + url + '...</div>';
+
+      try {
+        const res = await fetch(url, { method: method });
+        const data = await res.json();
+
+        let traceHtml = '<div class="field-label">Execution Trace:</div><ul class="trace-list">';
+        if (data.executionSteps && data.executionSteps.length > 0) {
+          data.executionSteps.forEach(s => {
+            traceHtml += '<li class="trace-item">' + escapeHtml(s) + '</li>';
+          });
+        }
+        traceHtml += '</ul>';
+
+        let resultHtml = '<div class="field-label">Output Payload:</div><pre class="json-result">' +
+          escapeHtml(JSON.stringify(data.resultData || data, null, 2)) + '</pre>';
+
+        outputDiv.innerHTML = traceHtml + resultHtml;
+      } catch (err) {
+        outputDiv.innerHTML = '<div style="color: #f85149; font-size: 0.85rem;">❌ Request failed: ' + escapeHtml(err.message) + '</div>';
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

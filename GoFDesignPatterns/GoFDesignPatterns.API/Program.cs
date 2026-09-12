@@ -37,12 +37,15 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Design Patterns API v1");
-    c.RoutePrefix = string.Empty; // Serve Swagger UI at root URL for instant developer access
-    c.DocumentTitle = "Gang of Four & Modern Patterns Interactive Explorer";
+    c.RoutePrefix = "swagger";
+    c.DocumentTitle = "Gang of Four & Modern Patterns Interactive Swagger";
 });
 
 app.UseHttpsRedirection();
